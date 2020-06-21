@@ -1,0 +1,46 @@
+version: '3.8'
+
+# Usage:
+# $ docker-compose run --rm go_test
+# $ docker-compose down
+#
+# See README.md for details.
+
+services:
+  go_test:
+    build:
+      context: .
+      target: development_test
+    depends_on:
+      - postgres_test
+    env_file:
+      - test.env
+    volumes:
+      - type: bind # We only need to read this directory
+        source: .
+        target: /root/
+      - type: bind # We only need to read this directory
+        source: $GOPATH
+        target: /go
+    networks:
+      - testnet
+
+  postgres_test:
+    image: postgres:latest
+    env_file:
+      - test.env
+    ports:
+      - 5432:5432
+    networks:
+      - testnet
+    # No volumes because we want to start from a scratch db each time.
+    # If you want to persist the data, comment in the volume lines.
+    #volumes:
+      #- test_db:/var/lib/postgresql/data
+
+#volumes:
+  #test_db:
+
+networks:
+  testnet:
+    driver: bridge
